@@ -40,29 +40,37 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
-app.post("/urls", (req, res) => {
+app.post("/urls", (req, res) => { //using it for form used in urls_new Submit button
   console.log("input field::", req.body.longURL); // Log the POST request body to the console
   const id = generateRandomString();
   urlDatabase[id] = req.body.longURL
   console.log("urlDatabase::", urlDatabase);
-  res.redirect("/urls/" + id); // Respond with 'Ok' (we will replace this)
+  res.redirect("/urls/" + id);
 });
 
-app.get("/urls/:id", (req, res) => {
+app.get("/urls/:id", (req, res) => { //using it for form used in urls_index Edit button , this btn uses get verb in
+  //form method bz it just wants to render to urls_show
   const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] };
   res.render("urls_show", templateVars);
 });
 
-app.get("/u/:id", (req, res) => {
+app.get("/u/:id", (req, res) => { //using it for urls_show shortURL link
   const longURL = urlDatabase[req.params.id];
-  res.redirect(longURL);
+  res.redirect(longURL); //redirects to actual website eg:www.google.com by using shortURL
 });
 
-app.post("/urls/:id/delete", (req, res) => {
+app.post("/urls/:id/delete", (req, res) => { //using it for form used in urls_index delete button
   const id = req.params.id;
   console.log("id in delete route::", id);
   delete urlDatabase[id];
   console.log("urlDatabase after delete::", urlDatabase);
+  res.redirect("/urls/"); //redirects to app.get("/urls/") and displays that rendered ejs template(urls_index)
+});
+
+app.post("/urls/:id", (req, res) => { //using it for form used in urls_show Submit button
+  const id = req.params.id;
+  const updatedURL = req.body.newURL;
+  urlDatabase[id] = updatedURL;
   res.redirect("/urls/");
 });
 
