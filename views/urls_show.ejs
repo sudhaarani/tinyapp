@@ -23,6 +23,15 @@
           </a>
         </p>
       </div>
+      <div>
+        <h5>Edit</h5>
+        <p>
+        <form action="/urls/<%= id %>" method="POST">
+          New URL: <input type="text" name="newURL" placeholder="http://" />
+          <button type="submit">Submit</button>
+        </form>
+        </p>
+      </div>
       <div class="card-footer text-muted"></div>
     </div>
     <!-- Bootstrap JS -->
