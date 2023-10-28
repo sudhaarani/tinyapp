@@ -74,6 +74,12 @@ app.post("/urls/:id", (req, res) => { //using it for form used in urls_show Subm
   res.redirect("/urls/");
 });
 
+app.post("/login", (req, res) => { //using it for form used in _header username Submit button
+  //const usernameCookie = "";
+  res.cookie("usernameCookie", req.body.username);
+  res.redirect("/urls");
+})
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
