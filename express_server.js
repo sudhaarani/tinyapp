@@ -21,17 +21,17 @@ function generateRandomString() {
   return shortUrlId;
 }
 
-app.get("/", (req, res) => { //routing middleware
-  res.send("Hello!");
-});
+// app.get("/", (req, res) => { //routing middleware
+//   res.send("Hello!");
+// });
 
-app.get("/urls.json", (req, res) => {  //routing middleware
-  res.json(urlDatabase);
-});
+// app.get("/urls.json", (req, res) => {  //routing middleware
+//   res.json(urlDatabase);
+// });
 
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
+// app.get("/hello", (req, res) => {
+//   res.send("<html><body>Hello <b>World</b></body></html>\n");
+// });
 
 app.get("/urls", (req, res) => {
   const templateVars = {
