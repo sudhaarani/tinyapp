@@ -1,4 +1,5 @@
 const express = require("express");
+const cookieParser = require("cookie-parser");
 const app = express();
 const PORT = 8080; // default port 8080
 
@@ -12,6 +13,7 @@ const urlDatabase = {
 app.use(express.urlencoded({ extended: true })); //When our browser submits a POST request(form) where POST request
 // has a body, the data in the request body is sent as a Buffer(non - readable).To make it readable, we need
 //middleware(this line, express library gives this method) which will translate
+app.use(cookieParser());//middleware
 
 function generateRandomString() {
   shortUrlId = Math.random().toString(36).substring(2, 8);
@@ -32,12 +34,18 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = {
+    usernameCookie: req.cookies["usernameCookie"],// username is to be displayed on every page once logined on
+    urls: urlDatabase
+  }; //always pass templateVars as an object in render()
   res.render("urls_index", templateVars); // res.render is used to load up an ejs view file
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const templateVars = {
+    usernameCookie: req.cookies["usernameCookie"]
+  };
+  res.render("urls_new", templateVars);
 });
 
 app.post("/urls", (req, res) => { //using it for form used in urls_new Submit button
@@ -50,7 +58,11 @@ app.post("/urls", (req, res) => { //using it for form used in urls_new Submit bu
 
 app.get("/urls/:id", (req, res) => { //using it for form used in urls_index Edit button , this btn uses get verb in
   //form method bz it just wants to render to urls_show
-  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] };
+  const templateVars = {
+    usernameCookie: req.cookies["usernameCookie"],
+    id: req.params.id,
+    longURL: urlDatabase[req.params.id]
+  };
   res.render("urls_show", templateVars);
 });
 
@@ -74,9 +86,15 @@ app.post("/urls/:id", (req, res) => { //using it for form used in urls_show Subm
   res.redirect("/urls/");
 });
 
-app.post("/login", (req, res) => { //using it for form used in _header username Submit button
-  //const usernameCookie = "";
-  res.cookie("usernameCookie", req.body.username);
+app.post("/login", (req, res) => { //using it for form used in _header username Login button
+  res.cookie("usernameCookie", req.body.username); //"usernameCookie" -- any name  -->this name is used whereever for
+  //cookies
+  res.redirect("/urls");
+});
+
+app.post("/logout", (req, res) => { //using it for form used in _header username logout button
+  //console.log("logout");
+  res.clearCookie("usernameCookie"); //clears
   res.redirect("/urls");
 })
 
