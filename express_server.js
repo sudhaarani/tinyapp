@@ -10,15 +10,17 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+let users = {};
+
 app.use(express.urlencoded({ extended: true })); //When our browser submits a POST request(form) where POST request
 // has a body, the data in the request body is sent as a Buffer(non - readable).To make it readable, we need
 //middleware(this line, express library gives this method) which will translate
 app.use(cookieParser());//middleware
 
 function generateRandomString() {
-  shortUrlId = Math.random().toString(36).substring(2, 8);
-  console.log("shortUrlId::", shortUrlId);
-  return shortUrlId;
+  const randomId = Math.random().toString(36).substring(2, 8);
+  console.log("RandomId::", randomId);
+  return randomId;
 }
 
 // app.get("/", (req, res) => { //routing middleware
@@ -33,7 +35,7 @@ function generateRandomString() {
 //   res.send("<html><body>Hello <b>World</b></body></html>\n");
 // });
 
-app.get("/urls", (req, res) => {
+app.get("/urls", (req, res) => {  // "/urls" is a endpoint
   const templateVars = {
     usernameCookie: req.cookies["usernameCookie"],// username is to be displayed on every page once logined on
     urls: urlDatabase
@@ -53,7 +55,7 @@ app.post("/urls", (req, res) => { //using it for form used in urls_new Submit bu
   const id = generateRandomString();
   urlDatabase[id] = req.body.longURL
   console.log("urlDatabase::", urlDatabase);
-  res.redirect("/urls/" + id);
+  res.redirect("/urls/" + id); // res.redirect is redirected to app.get method of given endpoint
 });
 
 app.get("/urls/:id", (req, res) => { //using it for form used in urls_index Edit button , this btn uses get verb in
@@ -86,6 +88,24 @@ app.post("/urls/:id", (req, res) => { //using it for form used in urls_show Subm
   res.redirect("/urls/");
 });
 
+app.get("/register", (req, res) => {
+  res.render("urls_register");
+});
+
+app.post("/register", (req, res) => {
+  const userId = generateRandomString();
+  //users = {
+  users[userId] = {
+    id: userId,
+    email: req.body.email,
+    password: req.body.password
+    // }
+  };
+  console.log("users after email nd pass::", users);
+  res.cookie("userIdCookie", userId);
+  res.redirect("/urls");
+});
+
 app.post("/login", (req, res) => { //using it for form used in _header username Login button
   res.cookie("usernameCookie", req.body.username); //"usernameCookie" -- any name  -->this name is used whereever for
   //cookies
@@ -96,7 +116,7 @@ app.post("/logout", (req, res) => { //using it for form used in _header username
   //console.log("logout");
   res.clearCookie("usernameCookie"); //clears
   res.redirect("/urls");
-})
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
