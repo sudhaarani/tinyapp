@@ -23,10 +23,12 @@ function generateRandomString() {
   return randomId;
 }
 
-function getUserWithEmail(users, email) {
+function getUserWithEmail(users, inputField) {
   for (let userId in users) {
-    if (users[userId].email === email) {
-      return users[userId];//if exists returns user obj else retuns undefined
+    const user = users[userId];
+    console.log("user in getUserWithEmail ::", user);
+    if (user.email === inputField) { //email
+      return user;//if exists returns user obj else returns undefined
     }
   }
 };
@@ -44,7 +46,7 @@ function getUserWithEmail(users, email) {
 
 app.get("/urls", (req, res) => {  // "/urls" is a endpoint
   const templateVars = {
-    user: users[req.cookies["userIdCookie"]],// username is to be displayed on every page once logined on
+    user: users[req.cookies["userIdCookie"]],//based on userId,we will gwt emailId of user which is to be displayed on every page once logined in
     urls: urlDatabase
   }; //always pass templateVars as an object in render()
   res.render("urls_index", templateVars); // res.render is used to load up an ejs view file
@@ -57,7 +59,7 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
-//*******reviewed*****
+//*******review*****
 app.post("/urls", (req, res) => { //using it for form used in urls_new Submit button
   console.log("input field::", req.body.longURL); // Log the POST request body to the console
   const id = generateRandomString();
@@ -124,16 +126,28 @@ app.get("/login", (req, res) => {
   res.render("urls_login");
 });
 
-app.post("/login", (req, res) => { //using it for form used in _header username Login button
-  //res.cookie("usernameCookie", req.body.username); //"usernameCookie" -- any name  -->this name is used whereever for
-  //cookies
-  res.redirect("/urls");
+app.post("/login", (req, res) => { //using it for form used in urls_login email Login button
+  for (let userId in users) {
+    const user = users[userId];
+    console.log("for loop in login post ,user::", user);
+    if (user.email === req.body.email) { // email already exists
+      console.log("email is thr");
+      if (user.password === req.body.password) {//if email and password exists, set cookie
+        console.log("password is crt");
+        res.cookie("userIdCookie", userId); // user_id cookie is set
+        res.redirect("/urls");
+      }
+    }
+  }
+  //if email doesnt exists
+  //if email id exists, password doesnt match
+  res.status(403).end(`<p>Invalid Credentials. Please register!</p>`);
 });
 
-app.post("/logout", (req, res) => { //using it for form used in _header username logout button
+app.post("/logout", (req, res) => { //using it for form used in _header email logout button
   console.log("logout");
-  res.clearCookie("userIdCookie"); //clears
-  res.redirect("/urls");
+  res.clearCookie("userIdCookie"); //clears cookie
+  res.redirect("/login");
 });
 
 app.listen(PORT, () => {
