@@ -53,6 +53,10 @@ app.get("/urls", (req, res) => {  // "/urls" is a endpoint
 });
 
 app.get("/urls/new", (req, res) => {
+  if (!req.cookies["userIdCookie"]) {//If the user is not logged in, redirect to  get /login
+    console.log("user is not logged in so redirect to /login:: in if get /urls/new");
+    res.redirect("/login");
+  }
   const templateVars = {
     user: users[req.cookies["userIdCookie"]]
   };
@@ -61,6 +65,10 @@ app.get("/urls/new", (req, res) => {
 
 //*******review*****
 app.post("/urls", (req, res) => { //using it for form used in urls_new Submit button
+  if (!req.cookies["userIdCookie"]) {//If the user is not logged in, respond with msg
+    console.log("user is not logged in so respond with msg:: in if post /urls");
+    return res.send("<html><body>You are not logged in so you cannot shorten URL</body></html>\n");
+  }
   console.log("input field::", req.body.longURL); // Log the POST request body to the console
   const id = generateRandomString();
   urlDatabase[id] = req.body.longURL
@@ -76,12 +84,17 @@ app.get("/urls/:id", (req, res) => { //using it for form used in urls_index Edit
     id: req.params.id,
     longURL: urlDatabase[req.params.id]
   };
-  console.log("templateVars in ourls/id---> urls_show::", templateVars);
+  console.log("templateVars in uurls/id---> urls_show::", templateVars);
   res.render("urls_show", templateVars);
 });
 
 app.get("/u/:id", (req, res) => { //using it for urls_show shortURL link
+  if (!urlDatabase[req.params.id]) {// if id is not in db
+    console.log("the requested tinyURL is not available in db:: in if u/id::");
+    return res.send("<p>The requested TinyURL doesn't exist!</p>");
+  }
   const longURL = urlDatabase[req.params.id];
+  console.log("the requested tinyURL is available in db:: in u/id::");
   res.redirect(longURL); //redirects to actual website eg:www.google.com by using shortURL
 });
 
@@ -101,6 +114,11 @@ app.post("/urls/:id", (req, res) => { //using it for form used in urls_show Subm
 });
 
 app.get("/register", (req, res) => {
+  const userLoggedIn = req.cookies["userIdCookie"];
+  if (userLoggedIn) {//If the user is not logged in, redirect to  get /login
+    console.log("user is logged in already get /register::", userLoggedIn);
+    res.redirect("/urls");
+  }
   res.render("urls_register");
 });
 
@@ -123,6 +141,11 @@ app.post("/register", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
+  const userLoggedIn = req.cookies["userIdCookie"];
+  if (userLoggedIn) {
+    console.log("user is logged in already get /login::", userLoggedIn);
+    res.redirect("/urls");
+  }
   res.render("urls_login");
 });
 
