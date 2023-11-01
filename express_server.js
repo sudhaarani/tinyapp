@@ -23,6 +23,13 @@ function generateRandomString() {
   return randomId;
 }
 
+function getUserWithEmail(users, email) {
+  for (let userId in users) {
+    if (users[userId].email === email) {
+      return users[userId];//if exists returns user obj else retuns undefined
+    }
+  }
+};
 // app.get("/", (req, res) => { //routing middleware
 //   res.send("Hello!");
 // });
@@ -37,7 +44,7 @@ function generateRandomString() {
 
 app.get("/urls", (req, res) => {  // "/urls" is a endpoint
   const templateVars = {
-    usernameCookie: req.cookies["usernameCookie"],// username is to be displayed on every page once logined on
+    user: users[req.cookies["userIdCookie"]],// username is to be displayed on every page once logined on
     urls: urlDatabase
   }; //always pass templateVars as an object in render()
   res.render("urls_index", templateVars); // res.render is used to load up an ejs view file
@@ -45,26 +52,29 @@ app.get("/urls", (req, res) => {  // "/urls" is a endpoint
 
 app.get("/urls/new", (req, res) => {
   const templateVars = {
-    usernameCookie: req.cookies["usernameCookie"]
+    user: users[req.cookies["userIdCookie"]]
   };
   res.render("urls_new", templateVars);
 });
 
+//*******reviewed*****
 app.post("/urls", (req, res) => { //using it for form used in urls_new Submit button
   console.log("input field::", req.body.longURL); // Log the POST request body to the console
   const id = generateRandomString();
   urlDatabase[id] = req.body.longURL
   console.log("urlDatabase::", urlDatabase);
   res.redirect("/urls/" + id); // res.redirect is redirected to app.get method of given endpoint
-});
+});//redirected to urls alone have to confirm
 
 app.get("/urls/:id", (req, res) => { //using it for form used in urls_index Edit button , this btn uses get verb in
   //form method bz it just wants to render to urls_show
+  console.log("req.cookies[userIdCookie] in ourls/id---> urls_show::", req.cookies["userIdCookie"]);
   const templateVars = {
-    usernameCookie: req.cookies["usernameCookie"],
+    user: users[req.cookies["userIdCookie"]],
     id: req.params.id,
     longURL: urlDatabase[req.params.id]
   };
+  console.log("templateVars in ourls/id---> urls_show::", templateVars);
   res.render("urls_show", templateVars);
 });
 
@@ -93,28 +103,36 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  const userId = generateRandomString();
-  //users = {
+  if (!req.body.email || !req.body.password) {//anyone is missing
+    return res.status(400).end(`<p>Both Username and Password are required</p>`);
+  }
+  if (getUserWithEmail(users, req.body.email)) { // email already exists //if returns undefined dont go into if loop
+    return res.status(400).end(`<p>Email already in use</p>`);
+  }
+  const userId = generateRandomString(); //if emailid doent exists in users obj && both fields are givn input
   users[userId] = {
     id: userId,
     email: req.body.email,
     password: req.body.password
-    // }
   };
   console.log("users after email nd pass::", users);
-  res.cookie("userIdCookie", userId);
+  res.cookie("userIdCookie", userId); // user_id cookie is set
   res.redirect("/urls");
 });
 
+app.get("/login", (req, res) => {
+  res.render("urls_login");
+});
+
 app.post("/login", (req, res) => { //using it for form used in _header username Login button
-  res.cookie("usernameCookie", req.body.username); //"usernameCookie" -- any name  -->this name is used whereever for
+  //res.cookie("usernameCookie", req.body.username); //"usernameCookie" -- any name  -->this name is used whereever for
   //cookies
   res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => { //using it for form used in _header username logout button
-  //console.log("logout");
-  res.clearCookie("usernameCookie"); //clears
+  console.log("logout");
+  res.clearCookie("userIdCookie"); //clears
   res.redirect("/urls");
 });
 
