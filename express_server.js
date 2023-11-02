@@ -6,8 +6,16 @@ const PORT = 8080; // default port 8080
 app.set("view engine", "ejs");//tells the Express app to use EJS as its templating engine
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  // "b2xVn2": "http://www.lighthouselabs.ca",
+  // "9sm5xK": "http://www.google.com"
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW",
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW",
+  },
 };
 
 let users = {};
@@ -32,6 +40,19 @@ function getUserWithEmail(users, inputField) {
     }
   }
 };
+
+function urlsForUser(cookieId) {
+  let urls = {};
+  console.log("user in urlsForUser ::");
+  for (let shortURLId in urlDatabase) {
+    if (urlDatabase[shortURLId].userID === cookieId) {
+      console.log("user in urlsForUser ::cookie id nd usermatches");
+      urls[shortURLId] = urlDatabase[shortURLId];
+      // urls["_id"] = id;
+    }
+  }
+  return urls;
+};
 // app.get("/", (req, res) => { //routing middleware
 //   res.send("Hello!");
 // });
@@ -45,10 +66,17 @@ function getUserWithEmail(users, inputField) {
 // });
 
 app.get("/urls", (req, res) => {  // "/urls" is a endpoint
+  if (!req.cookies["userIdCookie"]) {//If the user is not logged in, respond with msg
+    console.log("user is not logged in so respond with msg:: in if get /urls");
+    return res.send("<html><body>You are not logged in so Log in or Register</body></html>\n");
+  }
+  const userUrl = urlsForUser(req.cookies["userIdCookie"]); //returns longUrl of that logged in user
+  console.log("user is logged in so loading users id and longurl:: in if get /urls", userUrl);
   const templateVars = {
     user: users[req.cookies["userIdCookie"]],//based on userId,we will gwt emailId of user which is to be displayed on every page once logined in
-    urls: urlDatabase
+    urls: userUrl
   }; //always pass templateVars as an object in render()
+
   res.render("urls_index", templateVars); // res.render is used to load up an ejs view file
 });
 
@@ -69,22 +97,40 @@ app.post("/urls", (req, res) => { //using it for form used in urls_new Submit bu
     console.log("user is not logged in so respond with msg:: in if post /urls");
     return res.send("<html><body>You are not logged in so you cannot shorten URL</body></html>\n");
   }
-  console.log("input field::", req.body.longURL); // Log the POST request body to the console
-  const id = generateRandomString();
-  urlDatabase[id] = req.body.longURL
+  console.log("input field::", req.body.longURLField); // Log the POST request body to the console
+  const shortURLId = generateRandomString();
+  urlDatabase[shortURLId] = {
+    longURL: req.body.longURLField,
+    userID: req.cookies["userIdCookie"]
+  };
   console.log("urlDatabase::", urlDatabase);
-  res.redirect("/urls/" + id); // res.redirect is redirected to app.get method of given endpoint
+  res.redirect("/urls/" + shortURLId); // res.redirect is redirected to app.get method of given endpoint
 });//redirected to urls alone have to confirm
 
 app.get("/urls/:id", (req, res) => { //using it for form used in urls_index Edit button , this btn uses get verb in
   //form method bz it just wants to render to urls_show
-  console.log("req.cookies[userIdCookie] in ourls/id---> urls_show::", req.cookies["userIdCookie"]);
+  if (!req.cookies["userIdCookie"]) {//If the user is not logged in, respond with msg
+    console.log("user is not logged in so respond with msg:: in if get /urls/id");
+    return res.send("<html><body>You are not allowed to access URL</body></html>\n");
+  }
+  //extra added by me
+  if (!urlDatabase[req.params.id]) {// if id is not in db
+    console.log("the requested tinyURL is not available in db:: in if u/id::");
+    return res.send("<p>The requested TinyURL doesn't exist!</p>");
+  }
+  //The individual URL pages should not be accesible if the URL does not belong to them.
+  if (urlDatabase[req.params.id].userID !== req.cookies["userIdCookie"]) {
+    console.log("URL is not belonged to you so respond with msg:: in if get /urls/id");
+    return res.send("<html><body>You are not allowed to access others URL</body></html>\n");
+  }
+  console.log("req.cookies[userIdCookie] in urls/id---> urls_show::", req.cookies["userIdCookie"]);
+  console.log("urlDatabase in urls/id---> urls_show::", urlDatabase);
   const templateVars = {
     user: users[req.cookies["userIdCookie"]],
-    id: req.params.id,
-    longURL: urlDatabase[req.params.id]
+    shortURLId: req.params.id,
+    longURL: urlDatabase[req.params.id].longURL
   };
-  console.log("templateVars in uurls/id---> urls_show::", templateVars);
+  console.log("templateVars in urls/id---> urls_show::", templateVars);
   res.render("urls_show", templateVars);
 });
 
@@ -93,23 +139,50 @@ app.get("/u/:id", (req, res) => { //using it for urls_show shortURL link
     console.log("the requested tinyURL is not available in db:: in if u/id::");
     return res.send("<p>The requested TinyURL doesn't exist!</p>");
   }
-  const longURL = urlDatabase[req.params.id];
+  const longURL = urlDatabase[req.params.id].longURL;
   console.log("the requested tinyURL is available in db:: in u/id::");
   res.redirect(longURL); //redirects to actual website eg:www.google.com by using shortURL
 });
 
 app.post("/urls/:id/delete", (req, res) => { //using it for form used in urls_index delete button
-  const id = req.params.id;
-  console.log("id in delete route::", id);
-  delete urlDatabase[id];
+  const shortURLId = req.params.id;
+  console.log("shortURLId in delete route::", shortURLId);
+  if (!urlDatabase[shortURLId]) {
+    console.log("the requested tinyURL is not available in db:: in if post urls/id/delete::");
+    return res.send("<p>The requested TinyURL doesn't exist!</p>");
+  }
+  if (!req.cookies["userIdCookie"]) {//If the user is not logged in, respond with msg
+    console.log("user is not logged in so respond with msg:: in if post /urls/id/delete");
+    return res.send("<html><body>You are not allowed to access URL</body></html>\n");
+  }
+  if (urlDatabase[shortURLId].userID !== req.cookies["userIdCookie"]) {
+    console.log("URL is not belonged to you so respond with msg:: in if post /urls/id/delete");
+    return res.send("<html><body>You are not allowed to access others URL</body></html>\n");
+  }
+  delete urlDatabase[shortURLId];
   console.log("urlDatabase after delete::", urlDatabase);
   res.redirect("/urls/"); //redirects to app.get("/urls/") and displays that rendered ejs template(urls_index)
 });
 
 app.post("/urls/:id", (req, res) => { //using it for form used in urls_show Submit button
-  const id = req.params.id;
+  const shortURLId = req.params.id;
   const updatedURL = req.body.newURL;
-  urlDatabase[id] = updatedURL;
+  if (!urlDatabase[shortURLId]) { //id doesnt exist
+    console.log("the requested tinyURL is not available in db:: in if post urls/id::");
+    return res.send("<p>The requested TinyURL doesn't exist!</p>");
+  }
+  if (!req.cookies["userIdCookie"]) {//If the user is not logged in, respond with msg
+    console.log("user is not logged in so respond with msg:: in if post /urls/id");
+    return res.send("<html><body>You are not allowed to access URL</body></html>\n");
+  }
+  if (urlDatabase[shortURLId].userID !== req.cookies["userIdCookie"]) { //if id not belong to them
+    console.log("URL is not belonged to you so respond with msg:: in if post /urls/id");
+    return res.send("<html><body>You are not allowed to access others URL</body></html>\n");
+  }
+  console.log("shortURLId and updatedURL::in post /urls/id", shortURLId, "---", updatedURL);
+  console.log("urlDatabase::in post /urls/id", urlDatabase);
+  urlDatabase[shortURLId].longURL = updatedURL;
+  console.log("urlDatabase after updated url::in post /urls/id", urlDatabase);
   res.redirect("/urls/");
 });
 
@@ -126,7 +199,7 @@ app.post("/register", (req, res) => {
   if (!req.body.email || !req.body.password) {//anyone is missing
     return res.status(400).end(`<p>Both Username and Password are required</p>`);
   }
-  if (getUserWithEmail(users, req.body.email)) { // email already exists //if returns undefined dont go into if loop
+  if (getUserWithEmail(users, req.body.email)) { // email already exists //if it returns undefined dont go into if loop
     return res.status(400).end(`<p>Email already in use</p>`);
   }
   const userId = generateRandomString(); //if emailid doent exists in users obj && both fields are givn input
@@ -150,21 +223,21 @@ app.get("/login", (req, res) => {
 });
 
 app.post("/login", (req, res) => { //using it for form used in urls_login email Login button
-  for (let userId in users) {
-    const user = users[userId];
-    console.log("for loop in login post ,user::", user);
-    if (user.email === req.body.email) { // email already exists
-      console.log("email is thr");
-      if (user.password === req.body.password) {//if email and password exists, set cookie
-        console.log("password is crt");
-        res.cookie("userIdCookie", userId); // user_id cookie is set
-        res.redirect("/urls");
-      }
+  const user = getUserWithEmail(users, req.body.email);
+  console.log("user  from getUserWithEmail func in login post ,user::", user);
+  if (user) { // email already exists
+    console.log("email is thr");
+    if (user.password === req.body.password) {//if email and password exists, set cookie
+      console.log("password is crt");
+      res.cookie("userIdCookie", user.id); // user_id cookie is set
+      res.redirect("/urls");
+    } else {//if email id exists, password doesnt match
+      console.log("password is incorrect");
+      res.status(403).end(`<p>Invalid Credentials. Password is incorrect!</p>`);
     }
   }
   //if email doesnt exists
-  //if email id exists, password doesnt match
-  res.status(403).end(`<p>Invalid Credentials. Please register!</p>`);
+  res.status(403).end(`<p>Invalid Credentials. Please register or Check Email Id!</p>`);
 });
 
 app.post("/logout", (req, res) => { //using it for form used in _header email logout button
