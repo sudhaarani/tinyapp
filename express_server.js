@@ -1,5 +1,6 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const bcrypt = require("bcryptjs");
 const app = express();
 const PORT = 8080; // default port 8080
 
@@ -199,17 +200,20 @@ app.post("/register", (req, res) => {
   if (!req.body.email || !req.body.password) {//anyone is missing
     return res.status(400).end(`<p>Both Username and Password are required</p>`);
   }
+  console.log("registering");
   if (getUserWithEmail(users, req.body.email)) { // email already exists //if it returns undefined dont go into if loop
     return res.status(400).end(`<p>Email already in use</p>`);
   }
   const userId = generateRandomString(); //if emailid doent exists in users obj && both fields are givn input
+  const password = req.body.password; // found in the req.body object
+  const hashedPassword = bcrypt.hashSync(password, 10);
   users[userId] = {
     id: userId,
     email: req.body.email,
-    password: req.body.password
+    password: hashedPassword
   };
   console.log("users after email nd pass::", users);
-  res.cookie("userIdCookie", userId); // user_id cookie is set
+  res.cookie("userIdCookie", userId); // userId from users obj is setted as cookie while registering
   res.redirect("/urls");
 });
 
@@ -227,9 +231,11 @@ app.post("/login", (req, res) => { //using it for form used in urls_login email 
   console.log("user  from getUserWithEmail func in login post ,user::", user);
   if (user) { // email already exists
     console.log("email is thr");
-    if (user.password === req.body.password) {//if email and password exists, set cookie
+    console.log("comparing hashed pssword and entered password::");
+    console.log(bcrypt.compareSync(req.body.password, user.password));
+    if (bcrypt.compareSync(req.body.password, user.password)) {//if email and password exists, set cookie
       console.log("password is crt");
-      res.cookie("userIdCookie", user.id); // user_id cookie is set
+      res.cookie("userIdCookie", user.id);  // userId from users obj is setted as cookie while logging in 
       res.redirect("/urls");
     } else {//if email id exists, password doesnt match
       console.log("password is incorrect");
