@@ -26,7 +26,7 @@
       <div>
         <h5>Edit</h5>
         <p>
-        <form action="/urls/<%= shortURLId %>" method="POST">
+        <form action="/urls/<%= shortURLId %>?_method=PUT" method="POST">
           <label for="newURL">New URL:</label>
           <input type="text" name="newURL" placeholder="http://" />
           <button type="submit" class="btn btn-primary">Submit</button>
