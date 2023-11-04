@@ -21,6 +21,8 @@
           Short URL ID: <a href="/u/<%= shortURLId %>">
             <%= shortURLId %>
           </a>
+          <label for="views">Views: </label>
+          <%= shortURLViews %>
         </p>
       </div>
       <div>
@@ -32,6 +34,29 @@
           <button type="submit" class="btn btn-primary">Submit</button>
         </form>
         </p>
+      </div>
+      <div>
+        <label for="yourvisit">Your visits:</label>
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">Your ID</th>
+              <th scope="col">Visited Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% visits.forEach((element)=>{ %>
+              <tr>
+                <td>
+                  <%= element.id %>
+                </td>
+                <td>
+                  <%=element.timestamp %>
+                </td>
+              </tr>
+              <% }) %>
+          </tbody>
+        </table>
       </div>
       <div class="card-footer text-muted"></div>
     </div>
