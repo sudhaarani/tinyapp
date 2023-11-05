@@ -1,7 +1,7 @@
 const express = require("express");
 const { getUserWithEmail, generateRandomString, urlsForUser, permissionFeatures } = require("./helpers");
 const cookieSession = require("cookie-session");
-var methodOverride = require('method-override');
+const methodOverride = require('method-override');
 const bcrypt = require("bcryptjs");
 const app = express();
 const PORT = 8080; // default port 8080
@@ -36,9 +36,16 @@ app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
+app.get("/", (req, res) => {
+  if (!req.session.userIdCookie) {//user not logged in
+    res.redirect("/login");
+  }
+  res.redirect("/urls");
+});
+
 app.get("/urls", (req, res) => {  // "/urls" is a endpoint
   if (!req.session.userIdCookie) {//If the user is not logged in, respond with msg
-    return res.send("<html><body>You are not logged in so Log in or Register</body></html>\n");
+    return res.send("<html><body>Sorry, You must be logged in to view this page. Please Log in or Register</body></html>\n");
   }
   const userUrl = urlsForUser(urlDatabase, req.session.userIdCookie); //returns longUrl of that logged in user
   const templateVars = {
@@ -50,7 +57,7 @@ app.get("/urls", (req, res) => {  // "/urls" is a endpoint
 
 app.post("/urls", (req, res) => { //using it for form used in urls_new Submit button
   if (!req.session.userIdCookie) {//If the user is not logged in, respond with msg
-    return res.send("<html><body>You are not logged in so you cannot shorten URL</body></html>\n");
+    return res.send("<html><body>Sorry, You must be logged in to shorten URL</body></html>\n");
   }
   const shortURLId = generateRandomString();
   urlDatabase[shortURLId] = {
@@ -58,9 +65,9 @@ app.post("/urls", (req, res) => { //using it for form used in urls_new Submit bu
     userID: req.session.userIdCookie
   };
   res.redirect("/urls/" + shortURLId); // res.redirect is redirected to app.get method of given endpoint
-});//redirected to urls alone have to confirm
+});
 
-app.get("/urls/new", (req, res) => {
+app.get("/urls/new", (req, res) => {//allows to create new url
   if (!req.session.userIdCookie) {//If the user is not logged in, redirect to  get /login
     res.redirect("/login");
   }
@@ -74,7 +81,7 @@ app.get("/urls/:id", (req, res) => { //using it for form used in urls_index Edit
   //form method bz it just wants to render to urls_show
   const result = permissionFeatures(urlDatabase, req.params.id, req, res);
   if (!result) {
-    //to track how many times a given short URL is visited
+    //to track how many times a given short URL is visited(stretch)
     //Logical OR assignment operator
     // Increment the visit count for each shortURLId
     req.session[req.params.id] = (req.session[req.params.id] || 0) + 1;//If the first value is false, the second value is assigned. else first value
