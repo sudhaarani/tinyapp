@@ -28,7 +28,7 @@ app.use(express.urlencoded({ extended: true })); //When our browser submits a PO
 //app.use(cookieParser());//middleware
 app.use(cookieSession({//middleware
   name: 'session',
-  keys: ['key1', 'key2']
+  keys: ['hi'] //any key can be used
 }));
 app.use(methodOverride('_method'));//for PUT,DELETE
 
