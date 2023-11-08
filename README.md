@@ -10,7 +10,6 @@ TinyApp is a full stack web application built with Node and Express that allows 
 ![INCORRECT_PASSWORD.png](https://github.com/sudhaarani/tinyapp/blob/master/screenshots/INCORRECT_PASSWORD.png)
 ![URL_IN_DB.png](https://github.com/sudhaarani/tinyapp/blob/master/screenshots/URL_IN_DB.png)
 ![URL_NOT_IN_DB.png](https://github.com/sudhaarani/tinyapp/blob/master/screenshots/URL_NOT_IN_DB.png)
-![URLS_PAGE.png](https://github.com/sudhaarani/tinyapp/blob/master/screenshots/URLS_PAGE.png)
 ![USER_NOT_REGISTERED.png](https://github.com/sudhaarani/tinyapp/blob/master/screenshots/USER_NOT_REGISTERED.png)
 ![URLS_ACCESS_WITHOUT_LOGIN..png](https://github.com/sudhaarani/tinyapp/blob/master/screenshots/URLS_ACCESS_WITHOUT_LOGIN.png)
 
