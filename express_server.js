@@ -32,15 +32,11 @@ app.use(cookieSession({//middleware
 }));
 app.use(methodOverride('_method'));//for PUT,DELETE
 
-
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
-});
-
 app.get("/", (req, res) => {
   if (!req.session.userIdCookie) {//user not logged in
     return res.redirect("/login");
   }
+
   res.redirect("/urls");
 });
 
@@ -48,11 +44,13 @@ app.get("/urls", (req, res) => {  // "/urls" is a endpoint
   if (!req.session.userIdCookie) {//If the user is not logged in, respond with msg
     return res.send("<html><body>Sorry, You must be logged in to view this page. Please Log in or Register</body></html>\n");
   }
+
   const userUrl = urlsForUser(urlDatabase, req.session.userIdCookie); //returns longUrl of that logged in user
   const templateVars = {
     user: users[req.session.userIdCookie],//based on userId,we will gwt emailId of user which is to be displayed on every page once logined in
     urls: userUrl
   }; //always pass templateVars as an object in render()
+
   res.render("urls_index", templateVars); // res.render is used to load up an ejs view file
 });
 
@@ -60,11 +58,13 @@ app.post("/urls", (req, res) => { //using it for form used in urls_new Submit bu
   if (!req.session.userIdCookie) {//If the user is not logged in, respond with msg
     return res.send("<html><body>Sorry, You must be logged in to shorten URL</body></html>\n");
   }
+
   const shortURLId = generateRandomString();
   urlDatabase[shortURLId] = {
     longURL: req.body.longURLField,
     userID: req.session.userIdCookie
   };
+
   res.redirect("/urls/" + shortURLId); // res.redirect is redirected to app.get method of given endpoint
 });
 
@@ -72,9 +72,11 @@ app.get("/urls/new", (req, res) => {//allows to create new url
   if (!req.session.userIdCookie) {//If the user is not logged in, redirect to  get /login
     return res.redirect("/login");
   }
+
   const templateVars = {
     user: users[req.session.userIdCookie]
   };
+
   res.render("urls_new", templateVars);
 });
 
@@ -100,6 +102,7 @@ app.get("/urls/:id", (req, res) => { //using it for form used in urls_index Edit
       shortURLViews: req.session[req.params.id],
       visits: req.session.visits
     };
+
     res.render("urls_show", templateVars);
   }
 });
@@ -138,6 +141,7 @@ app.get("/register", (req, res) => {
   if (userLoggedIn) {//If the user is not logged in, redirect to  get /login
     return res.redirect("/urls");
   }
+
   const templateVars = {
     user: users[userLoggedIn]
   };
@@ -148,9 +152,11 @@ app.post("/register", (req, res) => {
   if (!req.body.email || !req.body.password) {//anyone is missing
     return res.status(400).end(`<p>Both Username and Password are required</p>`);
   }
+
   if (getUserWithEmail(users, req.body.email)) { // email already exists //if it returns undefined dont go into if loop
     return res.status(400).end(`<p>Email already in use</p>`);
   }
+
   const userId = req.session.userIdCookie || generateRandomString(); //if emailid doent exists in users obj && both fields are givn input
   const password = req.body.password; // found in the req.body object
   const hashedPassword = bcrypt.hashSync(password, 10);
@@ -159,6 +165,7 @@ app.post("/register", (req, res) => {
     email: req.body.email,
     password: hashedPassword
   };
+
   req.session.userIdCookie = userId; // userId from users obj is setted as cookie while registering
   visitCount++; // used to display no.of visitors in get urls/id
   res.redirect("/urls");
@@ -169,6 +176,7 @@ app.get("/login", (req, res) => {
   if (userLoggedIn) {
     return res.redirect("/urls");
   }
+
   const templateVars = {
     user: users[req.session.userIdCookie]
   };
@@ -205,6 +213,10 @@ app.post("/login", (req, res) => { //using it for form used in urls_login email 
 app.post("/logout", (req, res) => { //using it for form used in _header email logout button
   req.session = null; // this is for cookie-session middleware // Deletes the cookie.
   res.redirect("/login");
+});
+
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}!`);
 });
 
 
