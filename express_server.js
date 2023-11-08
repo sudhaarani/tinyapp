@@ -49,8 +49,14 @@ app.post("/urls", (req, res) => { //using it for form used in urls_new Submit bu
   }
 
   const shortURLId = generateRandomString();
+  let longURL = req.body.longURLField;
+
+  if (!(longURL.includes("https://") || longURL.includes("http://"))) {
+    longURL = `https://${longURL}`;
+  }
+
   urlDatabase[shortURLId] = {
-    longURL: req.body.longURLField,
+    longURL: longURL,
     userID: req.session.userIdCookie
   };
 
@@ -109,7 +115,12 @@ app.delete("/urls/:id", (req, res) => { //using it for form used in urls_index d
 //using PUT verb for update
 app.put("/urls/:id", (req, res) => { //using it for form used in urls_show Submit button //chnged
   const shortURLId = req.params.id;
-  const updatedURL = req.body.newURL;
+  let updatedURL = req.body.newURL;
+
+  if (!(updatedURL.includes("https://") || updatedURL.includes("http://"))) {
+    updatedURL = `https://${updatedURL}`;
+  }
+
   const result = permissionFeatures(urlDatabase, shortURLId, req, res);
   if (!result) {
     urlDatabase[shortURLId].longURL = updatedURL;
