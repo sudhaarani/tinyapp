@@ -32,13 +32,14 @@ app.use(cookieSession({//middleware
 }));
 app.use(methodOverride('_method'));//for PUT,DELETE
 
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
 app.get("/", (req, res) => {
   if (!req.session.userIdCookie) {//user not logged in
-    res.redirect("/login");
+    return res.redirect("/login");
   }
   res.redirect("/urls");
 });
@@ -69,7 +70,7 @@ app.post("/urls", (req, res) => { //using it for form used in urls_new Submit bu
 
 app.get("/urls/new", (req, res) => {//allows to create new url
   if (!req.session.userIdCookie) {//If the user is not logged in, redirect to  get /login
-    res.redirect("/login");
+    return res.redirect("/login");
   }
   const templateVars = {
     user: users[req.session.userIdCookie]
@@ -135,9 +136,12 @@ app.get("/u/:id", (req, res) => { //using it for urls_show shortURL link
 app.get("/register", (req, res) => {
   const userLoggedIn = req.session.userIdCookie;
   if (userLoggedIn) {//If the user is not logged in, redirect to  get /login
-    res.redirect("/urls");
+    return res.redirect("/urls");
   }
-  res.render("urls_register");
+  const templateVars = {
+    user: users[userLoggedIn]
+  };
+  res.render("urls_register", templateVars);
 });
 
 app.post("/register", (req, res) => {
@@ -163,9 +167,12 @@ app.post("/register", (req, res) => {
 app.get("/login", (req, res) => {
   const userLoggedIn = req.session.userIdCookie;
   if (userLoggedIn) {
-    res.redirect("/urls");
+    return res.redirect("/urls");
   }
-  res.render("urls_login");
+  const templateVars = {
+    user: users[req.session.userIdCookie]
+  };
+  res.render("urls_login", templateVars);
 });
 
 app.post("/login", (req, res) => { //using it for form used in urls_login email Login button
@@ -173,7 +180,7 @@ app.post("/login", (req, res) => { //using it for form used in urls_login email 
   if (user) { // email already exists
     if (bcrypt.compareSync(req.body.password, user.password)) {//if email and password exists, set cookie
       req.session.userIdCookie = user.id;  // userId from users obj is setted as cookie while logging in
-      res.redirect("/urls");
+      return res.redirect("/urls");
     } else {//if email id exists, password doesnt match
       res.status(403).end(`<html>
 <head>
@@ -199,4 +206,6 @@ app.post("/logout", (req, res) => { //using it for form used in _header email lo
   req.session = null; // this is for cookie-session middleware // Deletes the cookie.
   res.redirect("/login");
 });
+
+
 
