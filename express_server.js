@@ -1,5 +1,6 @@
 const express = require("express");
 const { getUserWithEmail, generateRandomString, urlsForUser, permissionFeatures } = require("./helpers");
+const { urlDatabase, users } = require("./database");
 const cookieSession = require("cookie-session");
 const methodOverride = require('method-override');
 const bcrypt = require("bcryptjs");
@@ -8,19 +9,7 @@ const PORT = 8080; // default port 8080
 
 app.set("view engine", "ejs");//tells the Express app to use EJS as its templating engine
 
-const urlDatabase = {
-  b6UTxQ: {
-    longURL: "https://www.tsn.ca",
-    userID: "aJ48lW",
-  },
-  i3BoGr: {
-    longURL: "https://www.google.ca",
-    userID: "aJ48lW",
-  },
-};
-
 let visitCount = 0;
-let users = {};
 
 app.use(express.urlencoded({ extended: true })); //When our browser submits a POST request(form) where POST request
 // has a body, the data in the request body is sent as a Buffer(non - readable).To make it readable, we need
